@@ -46,7 +46,7 @@ jobs:
           echo "Copying server files, excluding node_modules..."
           robocopy server build/server /E /XD node_modules
           echo "Cleaning up unnecessary files..."
-          if (Test-Path "build/server/node_modules") { Remove-Item -Recurse -Force "build/server/node_modules" }
+          if (Test-Path "build/server/node_modules") { Remove-Item -Recurse -Force "build/server/node_modules" -ErrorAction Ignore }
         shell: pwsh
 
       - name: Upload artifact for deployment job
