@@ -38,13 +38,13 @@ jobs:
       - name: Create build artifact
         run: |
           echo "Creating build folder..."
-          mkdir build
+          mkdir -p build/client
+          mkdir -p build/server
           echo "Copying client build files..."
-          cp -r client/build build/client
-          echo "Copying server files..."
-          mkdir build/server
-          cp -r server/* build/server
-          echo "Cleaning up node_modules..."
+          cp -r client/build/* build/client
+          echo "Copying server files, excluding node_modules..."
+          rsync -av --progress server/ build/server --exclude=node_modules
+          echo "Cleaning up unnecessary files..."
           rm -rf build/server/node_modules
         shell: bash
 
