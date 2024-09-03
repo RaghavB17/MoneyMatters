@@ -28,9 +28,9 @@ jobs:
           if (Test-Path server/node_modules) { Remove-Item -Recurse -Force server/node_modules -ErrorAction Ignore }
           if (Test-Path server/package-lock.json) { Remove-Item -Force server/package-lock.json -ErrorAction Ignore }
           echo "Reinstalling dependencies..."
-          npm ci
-          npm ci --prefix client
-          npm ci --prefix server
+          npm install
+          npm install --prefix client
+          npm install --prefix server
           npm run build-client
           npm run test --if-present
         shell: pwsh
