@@ -1,0 +1,27 @@
+{
+  "name": "moneymatters",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "concurrently \"npm run start-client\" \"npm run start-server\"",
+    "start-client": "cd client && npm start",
+    "start-server": "cd server && npm start",
+    "build-client": "cd client && npm run build",
+    "build-server": "cd server && npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RaghavB17/MoneyMatters.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/RaghavB17/MoneyMatters/issues"
+  },
+  "homepage": "https://github.com/RaghavB17/MoneyMatters#readme",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
