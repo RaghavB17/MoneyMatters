@@ -1,5 +1,3 @@
-# .github/workflows/deploy.yml
-
 name: Build and deploy Node.js app to Azure Web App - moneymatter
 
 on:
@@ -20,11 +18,11 @@ jobs:
         with:
           node-version: '18.x'
 
-      - name: npm install, build, and test
+      - name: Install dependencies, build client, and run tests
         run: |
-          npm install
-          npm install --prefix client
-          npm install --prefix server
+          npm ci
+          npm ci --prefix client
+          npm ci --prefix server
           npm run build-client --if-present
           npm run test --if-present
 
@@ -35,7 +33,10 @@ jobs:
           echo "Copying client build files..."
           cp -r client/build build/client
           echo "Copying server files..."
-          cp -r server build/server
+          mkdir build/server
+          cp -r server/* build/server
+          echo "Cleaning up node_modules..."
+          rm -rf build/server/node_modules
         shell: bash
 
       - name: Upload artifact for deployment job
@@ -66,10 +67,16 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID }}
 
-      - name: 'Deploy to Azure Web App'
+      - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
         with:
           app-name: 'moneymatter'
           slot-name: 'Production'
           package: ./build
+
+      - name: Install server dependencies on Azure
+        run: |
+          cd build/server
+          npm ci
+        shell: bash
