@@ -45,7 +45,7 @@ jobs:
           cp -r client/build/* build/client
           echo "Copying server files, excluding node_modules..."
           robocopy server build/server /E /XD node_modules
-          echo "Build artifact creation completed."r
+          echo "Build artifact creation completed."
         shell: pwsh
 
       - name: Upload artifact for deployment job
