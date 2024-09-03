@@ -20,10 +20,15 @@ jobs:
 
       - name: Install dependencies, build client, and run tests
         run: |
+          echo "Cleaning up dependencies..."
+          rm -rf node_modules package-lock.json
+          rm -rf client/node_modules client/package-lock.json
+          rm -rf server/node_modules server/package-lock.json
+          echo "Reinstalling dependencies..."
           npm ci
           npm ci --prefix client
           npm ci --prefix server
-          cd client && npm run build
+          npm run build-client
           npm run test --if-present
 
       - name: Create build artifact
