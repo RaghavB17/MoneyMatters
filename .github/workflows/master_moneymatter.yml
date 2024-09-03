@@ -1,5 +1,4 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
+# .github/workflows/deploy.yml
 
 name: Build and deploy Node.js app to Azure Web App - moneymatter
 
@@ -28,21 +27,22 @@ jobs:
           npm install --prefix server
           npm run build-client --if-present
           npm run test --if-present
-      
+
       - name: Create build artifact
         run: |
+          echo "Creating build folder..."
           mkdir build
+          echo "Copying client build files..."
           cp -r client/build build/client
+          echo "Copying server files..."
           cp -r server build/server
-
-      - name: Create tarball of build artifacts
-        run: tar -czf build-artifacts.tar.gz -C build .
+        shell: bash
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
-          name: build-artifacts
-          path: build-artifacts.tar.gz
+          name: node-app
+          path: build # Upload only the 'build' directory to reduce file count
 
   deploy:
     runs-on: ubuntu-latest
@@ -57,23 +57,19 @@ jobs:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
-          name: build-artifacts
-      
-      - name: Extract build artifacts
-        run: tar -xzf build-artifacts.tar.gz
+          name: node-app
 
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_B1F7DC487A3E46EAA4E7FFE52ED2F944 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_4545E70A606D48F081A1C8F4ED2DF0A2 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_6EF28113ED15411CAA93B6FDC1A69085 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID }}
 
-      - name: Deploy to Azure Web App
+      - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
         with:
           app-name: 'moneymatter'
           slot-name: 'Production'
-          package: build
-          
+          package: ./build
