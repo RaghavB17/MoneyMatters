@@ -1,16 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 
-// Your Firebase configuration object
-// const firebaseConfig = {
-//   apiKey: "AIzaSyDFW_NKdIF5Q5SjlUBnHlB6QlKAzQ_R2Og",
-//   authDomain: "bt-verify-cfc7f.firebaseapp.com",
-//   projectId: "bt-verify-cfc7f",
-//   storageBucket: "bt-verify-cfc7f.appspot.com",
-//   messagingSenderId: "773414404553",
-//   appId: "1:773414404553:web:29f7ca21b1b21a3d3d6818"
-// };
-
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
   authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
