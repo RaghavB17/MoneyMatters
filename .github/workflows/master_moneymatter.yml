@@ -23,7 +23,7 @@ jobs:
           npm ci
           npm ci --prefix client
           npm ci --prefix server
-          npm run build-client --if-present
+          cd client && npm run build
           npm run test --if-present
 
       - name: Create build artifact
