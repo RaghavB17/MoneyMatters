@@ -29,11 +29,20 @@ jobs:
           npm run build-client --if-present
           npm run test --if-present
       
+      - name: Create build artifact
+        run: |
+          mkdir build
+          cp -r client/build build/client
+          cp -r server build/server
+
+      - name: Create tarball of build artifacts
+        run: tar -czf build-artifacts.tar.gz -C build .
+
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
-          name: node-app
-          path: .
+          name: build-artifacts
+          path: build-artifacts.tar.gz
 
   deploy:
     runs-on: ubuntu-latest
@@ -42,14 +51,17 @@ jobs:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
-      id-token: write #This is required for requesting the JWT
+      id-token: write
 
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
-          name: node-app
+          name: build-artifacts
       
+      - name: Extract build artifacts
+        run: tar -xzf build-artifacts.tar.gz
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -57,11 +69,11 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_4545E70A606D48F081A1C8F4ED2DF0A2 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_6EF28113ED15411CAA93B6FDC1A69085 }}
 
-      - name: 'Deploy to Azure Web App'
+      - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
         with:
           app-name: 'moneymatter'
           slot-name: 'Production'
-          package: .
+          package: build
           
