@@ -21,9 +21,12 @@ jobs:
       - name: Install dependencies, build client, and run tests
         run: |
           echo "Cleaning up dependencies..."
-          Remove-Item -Recurse -Force node_modules, package-lock.json
-          Remove-Item -Recurse -Force client/node_modules, client/package-lock.json
-          Remove-Item -Recurse -Force server/node_modules, server/package-lock.json
+          if (Test-Path node_modules) { Remove-Item -Recurse -Force node_modules -ErrorAction Ignore }
+          if (Test-Path package-lock.json) { Remove-Item -Force package-lock.json -ErrorAction Ignore }
+          if (Test-Path client/node_modules) { Remove-Item -Recurse -Force client/node_modules -ErrorAction Ignore }
+          if (Test-Path client/package-lock.json) { Remove-Item -Force client/package-lock.json -ErrorAction Ignore }
+          if (Test-Path server/node_modules) { Remove-Item -Recurse -Force server/node_modules -ErrorAction Ignore }
+          if (Test-Path server/package-lock.json) { Remove-Item -Force server/package-lock.json -ErrorAction Ignore }
           echo "Reinstalling dependencies..."
           npm ci
           npm ci --prefix client
