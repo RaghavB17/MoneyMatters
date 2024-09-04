@@ -1,0 +1,12 @@
+{
+  "files": {
+    "main.js": "/static/js/main.cb48578e.js",
+    "static/media/MMHand.png": "/static/media/MMHand.b2fb51749218b30d0f1f.png",
+    "static/media/MMGrow2.png": "/static/media/MMGrow2.58ef9a2f9045f19cf034.png",
+    "index.html": "/index.html",
+    "main.cb48578e.js.map": "/static/js/main.cb48578e.js.map"
+  },
+  "entrypoints": [
+    "static/js/main.cb48578e.js"
+  ]
+}
