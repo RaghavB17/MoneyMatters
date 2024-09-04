@@ -7,33 +7,30 @@ const morgan = require('morgan');
 dotenv.config();
 
 const app = express();
-const corsOptions = {
-    origin: 'https://moneymatter.vercel.app', // Replace with your actual client URL
+
+// Middleware
+app.use(cors({
+    origin: 'https://moneymatter.vercel.app', // Replace with the correct client URL
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization']
-};
-
-app.use(cors(corsOptions))
+    allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 app.use(morgan('dev'));
 app.use(express.json());
 
 // MongoDB connection
-mongoose.connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
+mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.log(err));
 
-// Default Route - Optional, primarily for testing
-app.get('/', (req, res) => {
-    res.json({ message: "Server is running!" });
-});
-
-// API Routes
+// Routes
+app.use('/api/auth', require('./routes/authRoutes')); // Ensure this path is correct
 app.use('/api/transactions', require('./routes/transactionRoutes'));
-app.use('/api/auth', require('./routes/authRoutes'));
+
+// Fallback route to catch all 404 errors
+app.use((req, res) => {
+    res.status(404).json({ error: 'Page not found' });
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
