@@ -51,11 +51,7 @@ jobs:
       - name: Compress build folder
         run: |
           echo "Compressing build folder to TAR..."
-          tar -cf build.tar -C build .  # Create a .tar file of the build folder
-          echo "Compressing TAR to GZIP..."
-          gzip -f build.tar  # Compress the .tar file to .tar.gz
-          echo "Checking GZIP file..."
-          ls -la build.tar.gz
+          zip -r build.zip build  # Create a .zip file of the build folder
           echo "Compression completed."
         shell: bash
 
@@ -93,7 +89,7 @@ jobs:
         with:
           app-name: 'moneymatter'
           slot-name: 'Production'
-          package: ./build.tar.gz
+          package: ./build.zip
 
       - name: Install server dependencies on Azure
         run: |
