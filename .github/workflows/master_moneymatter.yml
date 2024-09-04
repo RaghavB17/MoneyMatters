@@ -64,7 +64,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: build.tar.gz  # Upload the compressed build artifact
+          path: build.zip  # Upload the compressed build artifact
           
   deploy:
     runs-on: ubuntu-latest
