@@ -7,9 +7,14 @@ const morgan = require('morgan');
 dotenv.config();
 
 const app = express();
+const corsOptions = {
+    origin: 'https://moneymatter.vercel.app', // Replace with your actual client URL
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization']
+};
 
-// Middleware
-app.use(cors());
+app.use(cors(corsOptions))
 app.use(morgan('dev'));
 app.use(express.json());
 
