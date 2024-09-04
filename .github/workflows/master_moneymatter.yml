@@ -48,12 +48,17 @@ jobs:
           echo "Build artifact creation completed."
         shell: pwsh
 
-      - name: Compress build folder
+      - name: Install zip utility
         run: |
-          echo "Compressing build folder to TAR..."
+          choco install zip
+        shell: pwsh
+
+      - name: Compress build folder to ZIP
+        run: |
+          echo "Compressing build folder to ZIP..."
           zip -r build.zip build  # Create a .zip file of the build folder
           echo "Compression completed."
-        shell: bash
+        shell: pwsh
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
