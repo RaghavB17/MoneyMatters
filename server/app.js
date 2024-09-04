@@ -9,12 +9,16 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors({
-    origin: 'https://moneymatter.vercel.app', // Replace with the correct client URL
+const corsOptions = {
+    origin: [ 'https://moneymatter.vercel.app', 'http://localhost:3000' ],// Replace with the correct client URL
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With', 'UserID', 'userid', 'email'],
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
 app.use(morgan('dev'));
 app.use(express.json());
 
