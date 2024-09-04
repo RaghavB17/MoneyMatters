@@ -51,14 +51,11 @@ jobs:
       - name: Compress build folder
         run: |
           echo "Compressing build folder to TAR..."
-          Compress-Archive -Path build -DestinationPath build.tar
+          tar -cf build.tar -C build .  # Create a .tar file of the build folder
           echo "Compressing TAR to GZIP..."
-          [System.IO.Compression.GzipStream]::new(
-              [System.IO.File]::OpenRead("build.tar"),
-              [System.IO.Compression.CompressionMode]::Compress
-          ).CopyTo([System.IO.File]::Create("build.tar.gz"))
+          gzip -f build.tar  # Compress the .tar file to .tar.gz
           echo "Compression completed."
-        shell: pwsh
+        shell: bash
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
