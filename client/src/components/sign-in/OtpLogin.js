@@ -18,6 +18,7 @@ import {
 } from "@mui/material";
 import { useDispatch } from "react-redux";
 import { loginWithOtp } from "../../redux/slices/authSlice";
+import { setUser } from '../../redux/slices/userSlice';
 import axios from "axios";
 
 function OtpLogin({ open, handleClose }) {
@@ -99,10 +100,18 @@ function OtpLogin({ open, handleClose }) {
         setMessage("OTP verified successfully!");
         dispatch(loginWithOtp({ phoneNumber }))
           .unwrap()
-          .then((result) => {
+          .then((userData) => {
             setAlert({ open: true, severity: 'success', message: 'Login successful!' });
-            navigate('/dashboard');
+            dispatch(setUser({
+              userId: userData.user.id,
+              email: userData.user.email,
+              firstName: userData.user.firstName,
+              lastName: userData.user.lastName,
+              phoneNumber: userData.user.phoneNumber,
+              userName: userData.user.name
+            }));
             setLoading(false); // Stop loading after successful login
+            navigate('/dashboard');
           })
           .catch(() => {
             setLoading(false); // Stop loading on error
