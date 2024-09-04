@@ -12,17 +12,21 @@ const app = express();
 app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json());
+
 // MongoDB connection
 mongoose.connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true
-}).then(() => console.log('MongoDB connected'))
-.catch(err => console.log(err));
+})
+    .then(() => console.log('MongoDB connected'))
+    .catch(err => console.log(err));
 
-// Routes
-app.use('/', (req, res) => {
-    res.json({message: "Hello, you are in server app!"});
+// Default Route - Optional, primarily for testing
+app.get('/', (req, res) => {
+    res.json({ message: "Server is running!" });
 });
+
+// API Routes
 app.use('/api/transactions', require('./routes/transactionRoutes'));
 app.use('/api/auth', require('./routes/authRoutes'));
 
