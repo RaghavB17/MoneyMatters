@@ -20,6 +20,9 @@ mongoose.connect(process.env.MONGODB_URI, {
 .catch(err => console.log(err));
 
 // Routes
+app.use('/', (req, res) => {
+    res.json({message: "Hello, you are in server app!"});
+});
 app.use('/api/transactions', require('./routes/transactionRoutes'));
 app.use('/api/auth', require('./routes/authRoutes'));
 
