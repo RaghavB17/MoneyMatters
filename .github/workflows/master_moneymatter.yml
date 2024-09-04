@@ -81,6 +81,11 @@ jobs:
         with:
           name: node-app
 
+      - name: List artifact contents
+        run: |
+          ls -R build
+        shell: bash
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -98,6 +103,10 @@ jobs:
 
       - name: Install server dependencies on Azure
         run: |
+          echo "Changing directory to build/server..."
           cd build/server
+          echo "Listing files in build/server..."
+          ls
+          echo "Installing dependencies..."
           npm ci
         shell: bash
