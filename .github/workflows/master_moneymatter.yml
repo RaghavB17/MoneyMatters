@@ -54,6 +54,8 @@ jobs:
           tar -cf build.tar -C build .  # Create a .tar file of the build folder
           echo "Compressing TAR to GZIP..."
           gzip -f build.tar  # Compress the .tar file to .tar.gz
+          echo "Checking GZIP file..."
+          ls -la build.tar.gz
           echo "Compression completed."
         shell: bash
 
