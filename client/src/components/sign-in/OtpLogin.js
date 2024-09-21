@@ -1,6 +1,6 @@
 // OtpLogin.js
 import LoadingButton from '@mui/lab/LoadingButton';
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { auth, setupRecaptcha, signInWithPhoneNumber } from "../../firebase";
 import { PhoneAuthProvider, signInWithCredential } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
@@ -27,7 +27,9 @@ function OtpLogin({ open, handleClose }) {
   const [otpSent, setOtpSent] = useState(false);
   const [verificationId, setVerificationId] = useState(null);
   const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false); // Loading state for buttons
+  const [loading, setLoading] = useState(false);
+  const [resendTimer, setResendTimer] = useState(30); // Timer for resending OTP
+  const [canResend, setCanResend] = useState(false); // State to track if user can resend OTP
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [alert, setAlert] = useState({
@@ -36,9 +38,34 @@ function OtpLogin({ open, handleClose }) {
     message: ''
   });
 
+  useEffect(() => {
+    let timer;
+    if (otpSent && resendTimer > 0) {
+      timer = setInterval(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
+    } else if (resendTimer === 0) {
+      setCanResend(true); // Allow user to resend OTP after timer ends
+    }
+
+    return () => clearInterval(timer); // Clean up timer on component unmount
+  }, [otpSent, resendTimer]);
+
   const handleAlertClose = () => {
     setAlert({ ...alert, open: false });
   };
+
+
+  // Clean up the reCAPTCHA on unmount using useEffect
+  useEffect(() => {
+    return () => {
+      // Check if reCAPTCHA is rendered, then reset
+      if (window.recaptchaVerifier && window.grecaptcha) {
+        window.grecaptcha.reset(window.recaptchaWidgetId);
+        window.recaptchaVerifier.clear(); // Clear verifier if it exists
+      }
+    };
+  }, []); // Empty array ensures this runs only on unmount
 
   const validatePhoneNumber = async () => {
     try {
@@ -72,7 +99,10 @@ function OtpLogin({ open, handleClose }) {
       return;
     }
 
-    setupRecaptcha("recaptcha-container");
+    if (!window.recaptchaVerifier) {
+      setupRecaptcha("recaptcha-container"); // Setup reCAPTCHA only when sending OTP
+    } 
+
     const appVerifier = window.recaptchaVerifier;
     const phoneNoWithCode = `+91${phoneNumber}`;
 
@@ -91,7 +121,7 @@ function OtpLogin({ open, handleClose }) {
 
   const verifyOTP = (e) => {
     e.preventDefault();
-    setLoading(true); // Set loading state to true when verifying OTP
+    setLoading(true);
 
     const credential = PhoneAuthProvider.credential(verificationId, otp);
 
@@ -110,16 +140,16 @@ function OtpLogin({ open, handleClose }) {
               phoneNumber: userData.user.phoneNumber,
               userName: userData.user.name
             }));
-            setLoading(false); // Stop loading after successful login
+            setLoading(false);
             navigate('/dashboard');
           })
           .catch(() => {
-            setLoading(false); // Stop loading on error
+            setLoading(false);
           });
       })
       .catch((error) => {
         setAlert({ open: true, severity: 'error', message: 'Error: Please enter correct OTP' });
-        setLoading(false); // Stop loading after error
+        setLoading(false);
       });
   };
 
@@ -130,10 +160,18 @@ function OtpLogin({ open, handleClose }) {
     setVerificationId(null);
     setMessage("");
     setLoading(false);
+    setResendTimer(30); // Reset resend timer when dialog is closed
+  };
+
+  const handleResendOTP = (event) => {
+    if (canResend) {
+      sendOTP(event); // Resend OTP
+    }
   };
 
   const handleCloseWithReset = () => {
     resetState();
+    window.location.assign("/");
     handleClose();
   };
 
@@ -197,20 +235,25 @@ function OtpLogin({ open, handleClose }) {
         <Button onClick={handleCloseWithReset}>Cancel</Button>
         {!otpSent ? (
           <LoadingButton
-            loading={loading} // Use loading state to indicate button status
+            loading={loading}
             disabled={!phoneNumber}
             onClick={sendOTP}
           >
             Send OTP
           </LoadingButton>
         ) : (
-          <LoadingButton
-            loading={loading} // Use loading state to indicate button status
-            disabled={!otp}
-            onClick={verifyOTP}
-          >
-            Verify OTP
-          </LoadingButton>
+          <>
+            <LoadingButton
+              loading={loading}
+              disabled={!otp}
+              onClick={verifyOTP}
+            >
+              Verify OTP
+            </LoadingButton>
+            <Button onClick={handleResendOTP} disabled={!canResend}>
+              Resend OTP {canResend ? '' : `(${resendTimer}s)`}
+            </Button>
+          </>
         )}
       </DialogActions>
       <Snackbar open={alert.open} autoHideDuration={4000} onClose={handleAlertClose}>

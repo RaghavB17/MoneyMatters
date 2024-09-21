@@ -86,7 +86,7 @@ const Navbar = () => {
   return (
     <CustomAppBar position="static">
       <Toolbar>
-        <Box sx={{ flexGrow: 0.5 }}>
+        <Box sx={{ flexGrow: 0.55 }}>
         <CustomButton edge="start" color="inherit" aria-label="menu" onClick={toggleDrawer(true)}>
           <Menu />
         </CustomButton>
