@@ -33,8 +33,7 @@ exports.getTransactions = async (req, res) => {
 
 // Update Transaction
 exports.updateTransaction = async (req, res) => {
-    const { id } = req.params;
-    const { name, category, amount, type } = req.body;
+    const { name, category, amount, type, id } = req.body;
 
     try {
         const transaction = await Transaction.findById(id);

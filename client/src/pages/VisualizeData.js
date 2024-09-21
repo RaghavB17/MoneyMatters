@@ -174,7 +174,7 @@ const VisualizeData = () => {
                             gap: 4,
                         }}
                     >
-                        <Card sx={{ p: 3, width: '50%' }}>
+                        <Card sx={{ p: 3, width: '80%' }}>
                             <Typography variant="h6" component="h3">
                                 Expenses by Category
                             </Typography>

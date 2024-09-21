@@ -5,7 +5,7 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import { styled } from '@mui/material/styles';
 import { addTransaction } from '../redux/slices/transactionSlice'; // Import the addTransaction action
 
-const categories = ["Salary", "EMI", "Investment", "Credit Cards", "Utilities", "Housing", "Travel", "Groceries", "Food", "Health", "Other Income"];
+const categories = ["Salary", "EMI", "Investment", "Credit Cards", "Shopping", "Utilities", "Housing", "Travel", "Groceries", "Food", "Health", "Other Income"];
 
 // Custom button styling with updated colors
 const CustomButton = styled(Button)(({ theme }) => ({
