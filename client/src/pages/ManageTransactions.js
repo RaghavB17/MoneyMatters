@@ -23,6 +23,7 @@ import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Close';
 import { fetchTransactions, updateTransaction, deleteTransaction } from '../redux/slices/transactionSlice';
+import { useNavigate } from 'react-router-dom';
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -62,6 +63,35 @@ const ManageTransactions = () => {
   const loading = useSelector((state) => state.transactions.loading);
   const SignInTheme = createTheme(getSignInTheme(themeMode));
   const dispatch = useDispatch(); // Add useDispatch hook
+  const navigate = useNavigate();
+  const user = useSelector((state) => state.user.user); // Get user information from Redux store
+
+  useEffect(() => {
+    if (user && (user.userId || user.id) && user.email) {
+      dispatch(fetchTransactions({ userId: user.userId ?? user.id, email: user.email }));
+    } else {
+      // If user data is missing, navigate to login page
+      navigate('/signin');
+    }
+  }, [dispatch, user, navigate]);
+
+  useEffect(() => {
+    if (user && transactions.length !== 0) {
+      setRows(
+        transactions.map((transaction) => ({
+          id: transaction._id,
+          date: transaction.date.split('T')[0],
+          name: transaction.name,
+          category: transaction.category,
+          type: transaction.type,
+          amount: transaction.amount,
+        }))
+      );
+    } else {
+      // If user data is missing, navigate to login page
+      dispatch(fetchTransactions({ userId: user.userId ?? user.id, email: user.email }));
+    }
+  }, [dispatch, transactions]);
 
   const [rows, setRows] = useState(
     transactions.map((transaction) => ({
