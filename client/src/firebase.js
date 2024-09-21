@@ -7,7 +7,7 @@ const firebaseConfig = {
   projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
   storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: process.env.REACT_APP_FIREBASE_MSG_SENDER_ID,
-  appId: process.env.REACT_APP_FIREBASE_APP_ID
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
 };
 
 // Initialize Firebase
@@ -16,25 +16,34 @@ const auth = getAuth(app);
 
 // Set up reCAPTCHA verifier
 const setupRecaptcha = (containerId) => {
-    if (window.recaptchaVerifier) {
-      window.recaptchaVerifier.clear();
-    }
-  
+  // Check if reCAPTCHA verifier already exists and clear it
+  if (window.recaptchaVerifier) {
+    window.recaptchaVerifier.clear();
+    delete window.recaptchaVerifier; // Remove from memory
+  }
+
+  // Create a new reCAPTCHA verifier
+  if (!window.recaptchaVerifier) {
     window.recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
-      size: "invisible", // "normal" if you want it visible
+      size: "invisible", // Use "normal" for visible reCAPTCHA
       callback: (response) => {
-        console.log("reCAPTCHA solved", response);
+        console.log("reCAPTCHA solved:", response);
       },
       'expired-callback': () => {
         console.log("reCAPTCHA expired, please solve again.");
       },
+      'error-callback': (error) => {
+        console.error("reCAPTCHA error:", error);
+      }
     });
-  
-    window.recaptchaVerifier.render().then((widgetId) => {
-      window.recaptchaWidgetId = widgetId;
-    }).catch((error) => {
-      console.error("Error rendering reCAPTCHA", error);
-    });
-  };
+  }
+
+  // Render reCAPTCHA and store the widget ID
+  window.recaptchaVerifier.render().then((widgetId) => {
+    window.recaptchaWidgetId = widgetId;
+  }).catch((error) => {
+    console.error("Error rendering reCAPTCHA", error);
+  });
+};
 
 export { auth, setupRecaptcha, signInWithPhoneNumber };
