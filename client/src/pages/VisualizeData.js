@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { LineChart, PieChart, BarChart, Gauge, gaugeClasses } from '@mui/x-charts';
+import { LineChart, PieChart, BarChart } from '@mui/x-charts';
 import { Box, Card, Stack, Typography, ToggleButton, ToggleButtonGroup, createTheme, ThemeProvider, CircularProgress } from '@mui/material';
 import getSignInTheme from '../components/sign-in/theme/getSignInTheme';
 import Navbar from '../components/Navbar';
 import { useSelector } from 'react-redux'; // Import useSelector from react-redux
+import { getExpenses, getIncome, getExpenseByCategory, getTransactionsByMonth, getExpensesByCategoryAndMonth } from '../redux/selectors/transactionSelectors';
 
 const VisualizeData = () => {
     const transactions = useSelector((state) => state.transactions.transactions); // Get transactions from Redux store
@@ -19,13 +20,12 @@ const VisualizeData = () => {
         }
     };
 
-    // Calculate income and expenses
-    const income = transactions
-        .filter((tx) => tx.type === 'income')
-        .reduce((sum, tx) => sum + tx.amount, 0);
-    const expense = transactions
-        .filter((tx) => tx.type === 'expense')
-        .reduce((sum, tx) => sum + tx.amount, 0);
+    // Get calculated data from selectors
+  const income = getIncome(transactions);
+  const expense = getExpenses(transactions);
+  const expenseByCategory = getExpenseByCategory(transactions);
+  const expensesByMonth = getTransactionsByMonth(transactions, 'expense');
+  const expensesByCategoryAndMonth = getExpensesByCategoryAndMonth(transactions);
 
     // Pie chart data structure (updated for highlighting)
     const pieData = [
@@ -33,46 +33,14 @@ const VisualizeData = () => {
         { id: 1, value: expense, label: 'Expense' },
     ];
 
-    // Group expenses by category for the new pie chart
-    const expenseByCategory = transactions
-      .filter((tx) => tx.type === 'expense')
-      .reduce((acc, tx) => {
-        const existing = acc.find((item) => item.label === tx.category);
-        if (existing) {
-          existing.value += tx.amount;
-          } else {
-            acc.push({ id: acc.length, value: tx.amount, label: tx.category });
-          }
-          return acc;
-      }, []);
-
-    const expensesByMonth = transactions
-      .filter(tx => tx.type === 'expense')
-      .reduce((acc, tx) => {
-        const month = new Date(tx.date).toLocaleString('default', { month: 'short', year: 'numeric' });
-        if (acc[month]) {
-          acc[month] += tx.amount;
-        } else {
-          acc[month] = tx.amount;
-        }
-        return acc;
-      }, {});
-
-    const incomeByMonth = transactions
-      .filter(tx => tx.type === 'income')
-      .reduce((acc, tx) => {
-        const month = new Date(tx.date).toLocaleString('default', { month: 'short', year: 'numeric' });
-        if (acc[month]) {
-          acc[month] += tx.amount;
-        } else {
-          acc[month] = tx.amount;
-        }
-        return acc;
-      }, {});
-
     const months = Object.keys(expensesByMonth).sort();
     const expenses = months.map(month => expensesByMonth[month]);
-    const monthIncome = months.map(month => incomeByMonth[month]);
+
+    const lineChartSeries = Object.entries(expensesByCategoryAndMonth).map(([category, categoryData]) => ({
+        data: months.map(month => categoryData.data[month] || 0),  // Safely access the data for each month or default to 0
+        label: category,
+        color: categoryData.color   // Assign a unique color or default to black if not defined
+      }));
 
     // Bar chart data structure
     const barData = [income, expense]; // Data for BarChart series
@@ -104,7 +72,8 @@ const VisualizeData = () => {
                 >
                     <ToggleButton value="incomeExpense">Income vs Expense</ToggleButton>
                     <ToggleButton value="expenseCategory">Expenses by Category</ToggleButton>
-                    <ToggleButton value="monthlyExpenses">Monthly Expenses</ToggleButton> {/* New Toggle Button */}
+                    <ToggleButton value="monthlyExpenses">Monthly Expenses</ToggleButton>
+                    <ToggleButton value="categoryVsMonth">Category vs Month</ToggleButton>
                 </ToggleButtonGroup>
 
                 {/* Conditionally Render Based on Toggle Selection */}
@@ -198,19 +167,46 @@ const VisualizeData = () => {
                             )}
                         </Card>
                     </Box>
+                ) : view === 'categoryVsMonth' ? (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            justifyContent: 'center',
+                            width: '80%',
+                            gap: 4,
+                        }}
+                    >
+                        <Card elevation={3} sx={{ p: 3, width: '100%' }}>
+                            <Typography variant="h6" component="h3">
+                                Expenses by Category vs Month
+                            </Typography>
+                            {lineChartSeries.length > 0 ? (
+                                <ErrorBoundary>
+                                    <LineChart
+                                        xAxis={[{ data: months, scaleType: 'band' }]}
+                                        series={lineChartSeries}
+                                        height={400}
+                                    />
+                                </ErrorBoundary>
+                            ) : (
+                                <Typography>No data available</Typography>
+                            )}
+                        </Card>
+                    </Box>
                 ) : (
                     <Box
                         sx={{
                             display: 'flex',
                             flexDirection: 'row',
-                            justifyContent: 'space-around',
+                            justifyContent: 'center',
                             width: '80%',
                             gap: 4,
                         }}
                     >
-                        <Card sx={{ p: 3, width: '45%' }}>
+                        <Card sx={{ p: 3, width: '80%' }}>
                             <Typography variant="h6" component="h3">
-                                Monthly Expenses
+                                Monthly Income vs Expenses
                             </Typography>
                             {months.length > 0 ? (
                                 <ErrorBoundary>
@@ -223,7 +219,6 @@ const VisualizeData = () => {
                                                 id: 'expensesId',
                                             },
                                         ]}
-                                        width={600}
                                         height={300}
                                     />
                                 </ErrorBoundary>
@@ -231,43 +226,6 @@ const VisualizeData = () => {
                                 <Typography>No data available</Typography>
                             )}
                         </Card>
-                        {/* <Card sx={{ p: 3, width: '45%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                            <Typography variant="h6" component="h3">
-                                Expenses vs Income
-                            </Typography>
-                            {!loading ? (
-                                <ErrorBoundary>
-                                    <Box
-                                        sx={{
-                                            width: '100%', // Adjust the width as needed
-                                            height: '300px', // Set a fixed height
-                                            overflow: 'hidden', // Prevent overflow
-                                            display: 'flex',
-                                            justifyContent: 'center',
-                                            alignItems: 'center',
-                                        }}
-                                    >
-                                        <Gauge
-                                            value={expenses}
-                                            startAngle={-110}
-                                            endAngle={110}
-                                            text={({ expense, income }) => `${expenses} / ${monthIncome}`}
-                                            sx={{
-                                                maxWidth: '100%', // Prevent Gauge from exceeding its container's width
-                                                maxHeight: '100%', // Prevent Gauge from exceeding its container's height
-                                                [`& .${gaugeClasses.valueText}`]: {
-                                                    fontSize: 38,
-                                                    transform: 'translate(0px, 0px)',
-                                                },
-                                            }}
-                                            valueMax={monthIncome}
-                                        />
-                                    </Box>
-                                </ErrorBoundary>
-                            ) : (
-                                    <CircularProgress disableShrink />
-                            )}
-                        </Card> */}
                     </Box>
                 )}
             </Stack>
