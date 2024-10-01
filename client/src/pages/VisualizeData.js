@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
 import { LineChart, PieChart, BarChart } from '@mui/x-charts';
-import { Box, Card, Stack, Typography, ToggleButton, ToggleButtonGroup, createTheme, ThemeProvider, CircularProgress } from '@mui/material';
+import { Box, Card, Stack, Typography, ToggleButton, ToggleButtonGroup, createTheme, ThemeProvider, CircularProgress, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import getSignInTheme from '../components/sign-in/theme/getSignInTheme';
 import Navbar from '../components/Navbar';
-import { useSelector } from 'react-redux'; // Import useSelector from react-redux
+import { useSelector } from 'react-redux'; 
 import { getExpenses, getIncome, getExpenseByCategory, getTransactionsByMonth, getExpensesByCategoryAndMonth } from '../redux/selectors/transactionSelectors';
 
 const VisualizeData = () => {
-    const transactions = useSelector((state) => state.transactions.transactions); // Get transactions from Redux store
-    const loading = useSelector((state) => state.transactions.loading); // Loading state for transactions 
-    const themeMode = useSelector((state) => state.theme.mode); // Get the theme mode from Redux store
+    const transactions = useSelector((state) => state.transactions.transactions); 
+    const loading = useSelector((state) => state.transactions.loading); 
+    const themeMode = useSelector((state) => state.theme.mode); 
 
-    const [view, setView] = useState('incomeExpense'); // Toggle state for switching views
+    const [view, setView] = useState('incomeExpense'); 
+    const [selectedCategory, setSelectedCategory] = useState("All"); // New state for category selection
 
     // Handle toggle change
     const handleViewChange = (event, newView) => {
@@ -20,33 +21,51 @@ const VisualizeData = () => {
         }
     };
 
-    // Get calculated data from selectors
-  const income = getIncome(transactions);
-  const expense = getExpenses(transactions);
-  const expenseByCategory = getExpenseByCategory(transactions);
-  const expensesByMonth = getTransactionsByMonth(transactions, 'expense');
-  const expensesByCategoryAndMonth = getExpensesByCategoryAndMonth(transactions);
+    // Handle category change
+    const handleCategoryChange = (event) => {
+        setSelectedCategory(event.target.value);
+    };
 
-    // Pie chart data structure (updated for highlighting)
+    // Get calculated data from selectors
+    const income = getIncome(transactions);
+    const expense = getExpenses(transactions);
+    const expenseByCategory = getExpenseByCategory(transactions);
+    const expensesByMonth = getTransactionsByMonth(transactions, 'expense');
+    const expensesByCategoryAndMonth = getExpensesByCategoryAndMonth(transactions);
+
+    // Pie chart data structure
     const pieData = [
         { id: 0, value: income, label: 'Income' },
         { id: 1, value: expense, label: 'Expense' },
     ];
 
-    const months = Object.keys(expensesByMonth).sort();
+    const months = Object.keys(expensesByMonth)
+        .sort((a, b) => {
+            const dateA = new Date(a); 
+            const dateB = new Date(b);
+            return dateA - dateB; 
+        });
+
     const expenses = months.map(month => expensesByMonth[month]);
 
-    const lineChartSeries = Object.entries(expensesByCategoryAndMonth).map(([category, categoryData]) => ({
-        data: months.map(month => categoryData.data[month] || 0),  // Safely access the data for each month or default to 0
-        label: category,
-        color: categoryData.color   // Assign a unique color or default to black if not defined
-      }));
+    // Filter the line chart series based on the selected category
+    const lineChartSeries = selectedCategory === "All"
+        ? Object.entries(expensesByCategoryAndMonth).map(([category, categoryData]) => ({
+            data: months.map(month => categoryData.data[month] || 0),
+            label: category,
+            color: categoryData.color || 'black'
+        }))
+        : [{
+            data: months.map(month => expensesByCategoryAndMonth[selectedCategory]?.data[month] || 0),
+            label: selectedCategory,
+            color: expensesByCategoryAndMonth[selectedCategory]?.color || 'black'
+        }];
 
     // Bar chart data structure
-    const barData = [income, expense]; // Data for BarChart series
-    const xLabels = ['Income', 'Expense']; // Categories for x-axis
+    const barData = [income, expense]; 
+    const xLabels = ['Income', 'Expense']; 
 
-    const SignInTheme = createTheme(getSignInTheme(themeMode)); // Use Redux state for theme mode
+    const SignInTheme = createTheme(getSignInTheme(themeMode)); 
 
     return (
         <ThemeProvider theme={SignInTheme}>
@@ -94,13 +113,11 @@ const VisualizeData = () => {
                             {!loading ? (pieData.length > 0 ? (
                                 <ErrorBoundary>
                                     <PieChart
-                                        series={[
-                                            {
-                                                data: pieData,
-                                                highlightScope: { faded: 'global', highlighted: 'item' },
-                                                faded: { innerRadius: 30, additionalRadius: -30, color: 'gray' },
-                                            },
-                                        ]}
+                                        series={[{
+                                            data: pieData,
+                                            highlightScope: { faded: 'global', highlighted: 'item' },
+                                            faded: { innerRadius: 30, additionalRadius: -30, color: 'gray' },
+                                        }]}
                                         height={300}
                                     />
                                 </ErrorBoundary>
@@ -120,9 +137,7 @@ const VisualizeData = () => {
                                     <BarChart
                                         width={500}
                                         height={300}
-                                        series={[
-                                            { data: barData, label: 'Amount', id: 'amountId' },
-                                        ]}
+                                        series={[{ data: barData, label: 'Amount', id: 'amountId' }]}
                                         xAxis={[{ data: xLabels, scaleType: 'band' }]}
                                     />
                                 </ErrorBoundary>
@@ -150,13 +165,11 @@ const VisualizeData = () => {
                             {!loading ? (expenseByCategory.length > 0 ? (
                                 <ErrorBoundary>
                                     <PieChart
-                                        series={[
-                                            {
-                                                data: expenseByCategory,
-                                                highlightScope: { faded: 'global', highlighted: 'item' },
-                                                faded: { innerRadius: 30, additionalRadius: -30, color: 'gray' },
-                                            },
-                                        ]}
+                                        series={[{
+                                            data: expenseByCategory,
+                                            highlightScope: { faded: 'global', highlighted: 'item' },
+                                            faded: { innerRadius: 30, additionalRadius: -30, color: 'gray' },
+                                        }]}
                                         height={300}
                                     />
                                 </ErrorBoundary>
@@ -171,12 +184,29 @@ const VisualizeData = () => {
                     <Box
                         sx={{
                             display: 'flex',
-                            flexDirection: 'row',
+                            flexDirection: 'column',
                             justifyContent: 'center',
                             width: '80%',
                             gap: 4,
                         }}
                     >
+                        {/* Dropdown for selecting a category */}
+                        <FormControl fullWidth sx={{ mb: 3 }}>
+                            <InputLabel>Category</InputLabel>
+                            <Select
+                                value={selectedCategory}
+                                label="Category"
+                                onChange={handleCategoryChange}
+                            >
+                                <MenuItem value="All">All</MenuItem>
+                                {Object.keys(expensesByCategoryAndMonth).map((category) => (
+                                    <MenuItem key={category} value={category}>
+                                        {category}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
                         <Card elevation={3} sx={{ p: 3, width: '100%' }}>
                             <Typography variant="h6" component="h3">
                                 Expenses by Category vs Month
@@ -212,13 +242,11 @@ const VisualizeData = () => {
                                 <ErrorBoundary>
                                     <LineChart
                                         xAxis={[{ data: months, scaleType: 'band' }]}
-                                        series={[
-                                            {
-                                                data: expenses,
-                                                label: 'Expenses',
-                                                id: 'expensesId',
-                                            },
-                                        ]}
+                                        series={[{
+                                            data: expenses,
+                                            label: 'Expenses',
+                                            id: 'expensesId',
+                                        }]}
                                         height={300}
                                     />
                                 </ErrorBoundary>
